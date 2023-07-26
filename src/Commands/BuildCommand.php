@@ -33,7 +33,8 @@ class BuildCommand extends Command
             ->env($this->getEnvironmentVariables())
             ->forever()
             ->tty(PHP_OS_FAMILY != 'Windows')
-            ->run('npm run build:mac-arm', function (string $type, string $output) {
+            // ->run('npm run build:mac-arm', function (string $type, string $output) {
+            ->run('npm run build:win', function (string $type, string $output) {
                 echo $output;
             });
     }
@@ -45,7 +46,8 @@ class BuildCommand extends Command
                 'APP_PATH' => base_path(),
                 'APP_URL' => config('app.url'),
                 'NATIVEPHP_BUILDING' => true,
-                'NATIVEPHP_PHP_BINARY_PATH' => base_path('vendor/nativephp/php-bin/bin/mac'),
+                // 'NATIVEPHP_PHP_BINARY_PATH' => base_path('vendor/nativephp/php-bin/bin/mac'),
+                'NATIVEPHP_PHP_BINARY_PATH' => base_path($this->phpBinaryPath()),
                 'NATIVEPHP_CERTIFICATE_FILE_PATH' => base_path('vendor/nativephp/php-bin/cacert.pem'),
                 'NATIVEPHP_APP_NAME' => config('app.name'),
                 'NATIVEPHP_APP_ID' => config('nativephp.app_id'),
