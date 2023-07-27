@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Native\Electron\Concerns\LocatesPhpBinary;
+use Native\Electron\Enums\Platforms;
 use Native\Electron\Facades\Updater;
 
 class BuildCommand extends Command
@@ -16,7 +17,29 @@ class BuildCommand extends Command
 
     public function handle()
     {
-        $this->info('Build NativePHP app…');
+		$targetArch = 'x64';
+		$targetPlatform = Platforms::from($this->choice(
+			'Choose a target build platform:',
+			[
+				Platforms::WINDOWS->value,
+				Platforms::DARWIN->value,
+				// Platforms::LINUX->value,
+			],
+			0
+		));
+		if ($targetPlatform == Platforms::DARWIN) {
+			// We need to also ask for the target architecture if targeting Mac
+			$targetArch = $this->choice(
+				'Choose a target build architecture:',
+				Platforms::DARWIN->Architectures(),
+				0
+			);
+		}
+		// dd($targetPlatform, $targetArch);
+		// $buildTarget = $this->argument('target');
+        $this->info("Build NativePHP app. Targeting {$targetPlatform->value}:{$targetArch}…");
+		$buildTarget = $targetPlatform->value . ($targetPlatform == Platforms::DARWIN ? '-' . $targetArch : '');
+		// dd('npm run build:' . $buildTarget);
 
         Process::path(__DIR__.'/../../resources/js/')
             ->env($this->getEnvironmentVariables())
@@ -33,7 +56,7 @@ class BuildCommand extends Command
             ->env($this->getEnvironmentVariables())
             ->forever()
             ->tty(PHP_OS_FAMILY != 'Windows')
-            ->run('npm run build:mac-arm', function (string $type, string $output) {
+            ->run("npm run build:$buildTarget", function (string $type, string $output) {
                 echo $output;
             });
     }
@@ -45,8 +68,8 @@ class BuildCommand extends Command
                 'APP_PATH' => base_path(),
                 'APP_URL' => config('app.url'),
                 'NATIVEPHP_BUILDING' => true,
-                'NATIVEPHP_PHP_BINARY_PATH' => base_path('vendor/nativephp/php-bin/bin/mac'),
-                'NATIVEPHP_CERTIFICATE_FILE_PATH' => base_path('vendor/nativephp/php-bin/cacert.pem'),
+                'NATIVEPHP_PHP_BINARY_PATH' => base_path($this->phpBinaryPath()),
+                'NATIVEPHP_CERTIFICATE_FILE_PATH' => base_path($this->binaryPackageDirectory() . 'cacert.pem'),
                 'NATIVEPHP_APP_NAME' => config('app.name'),
                 'NATIVEPHP_APP_ID' => config('nativephp.app_id'),
                 'NATIVEPHP_APP_VERSION' => config('nativephp.version'),

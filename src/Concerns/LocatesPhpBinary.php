@@ -19,6 +19,16 @@ trait LocatesPhpBinary
      */
     public function phpBinaryPath(): string
     {
-        return $this->binaryPackageDirectory().'bin/'.(PHP_OS_FAMILY === 'Windows' ? 'win' : 'mac');
+        return $this->binaryPackageDirectory() . 'bin/' . $this->platformDir();
+    }
+
+    public function platformDir(): string
+    {
+        return match (PHP_OS_FAMILY) {
+            'Windows' => 'win',
+            'Darwin' => 'mac',
+            'Linux' => 'linux',
+            default => throw new \Exception('Unsupported platform')
+        };
     }
 }

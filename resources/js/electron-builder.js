@@ -82,7 +82,7 @@ if (isBuilding) {
 
         // As we can't copy into a subdirectory of ourself we need to copy to a temp directory
         let tmpDir = mkdtempSync(join(os.tmpdir(), 'nativephp'));
-
+		console.log('App Temp Build Dir: ', tmpDir)
         copySync(process.env.APP_PATH, tmpDir, {
             overwrite: true,
             dereference: true,
@@ -121,7 +121,7 @@ if (isBuilding) {
         writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'app', 'public', '_native.json'), {})
         writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'logs', '_native.json'), {})
 
-        removeSync(tmpDir);
+        // removeSync(tmpDir);
 
         console.log('=====================');
         console.log('Copied app to resources');
@@ -160,6 +160,7 @@ module.exports = {
     afterSign: 'build/notarize.js',
     win: {
         executableName: fileName,
+		target: ['portable', 'zip'],
     },
     nsis: {
         artifactName: appName + '-${version}-setup.${ext}',
