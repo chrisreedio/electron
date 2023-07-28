@@ -20,13 +20,28 @@ let phpBinaryFilename = 'php';
 // Default to the current platform for develop mode. Build will pass in an arg that overrides this
 let targetOs = process.platform;
 
-if (isWindows) {
+switch (targetOs) {
+    case 'win32':
+        targetOs = 'win';
+        break;
+    case 'darwin':
+        targetOs = 'mac';
+        break;
+    case 'linux':
+        targetOs = 'linux';
+        break;
+    default:
+        throw new Error('Unsupported platform: ' + targetOs);
+        break;
+}
+
+if (isWindows || osTarget == 'win') {
     targetOs = 'win';
     phpBinaryFilename += '.exe';
 } else if (isLinux) {
     targetOs = 'linux';
 } else if (isDarwin) {
-	targetOs = 'mac';
+    targetOs = 'mac';
 }
 
 // Default to the current arch for develop mode. Build will pass in an arg that overrides this
