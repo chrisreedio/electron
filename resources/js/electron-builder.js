@@ -1,8 +1,8 @@
-const {copySync, removeSync, writeJsonSync, existsSync} = require("fs-extra");
-const {join} = require("path");
+const { copySync, removeSync, writeJsonSync, existsSync } = require('fs-extra');
+const { join } = require('path');
 const os = require('os');
-const {mkdtempSync} = require("fs");
-const {execSync} = require("child_process");
+const { mkdtempSync } = require('fs');
+const { execSync } = require('child_process');
 const isBuilding = process.env.NATIVEPHP_BUILDING == 1;
 const appId = process.env.NATIVEPHP_APP_ID;
 const appName = process.env.NATIVEPHP_APP_NAME;
@@ -26,14 +26,14 @@ if (isLinux) {
     targetOs = 'linux';
 }
 
-let binaryArch = 'x86';
+let binaryArch = process.arch;
 if (isArm64) {
     binaryArch = 'arm64';
-}
-if (isWindows || isLinux) {
+} else if (isWindows || isLinux) {
     binaryArch = 'x64';
+} else if (isDarwin) {
+    binaryArch = 'x86';
 }
-
 
 let updaterConfig = {};
 
@@ -43,8 +43,8 @@ console.log('Binary Filename: ', phpBinaryFilename);
 const binarySrcDir = join(phpBinaryPath, targetOs, binaryArch);
 const binaryDestDir = join(__dirname, 'resources/php');
 
-console.log("Arch: ", process.arch)
-console.log("Platform: ", process.platform)
+console.log('Arch: ', process.arch);
+console.log('Platform: ', process.platform);
 try {
     updaterConfig = process.env.NATIVEPHP_UPDATER_CONFIG;
     updaterConfig = JSON.parse(updaterConfig);
@@ -59,7 +59,8 @@ if (phpBinaryPath) {
         copySync(binarySrcDir, binaryDestDir);
         // If we're on Windows, copy the php.exe from the dest dir to `php`.
         // This allows the same import command to work on all platforms (same binary filename)
-        if (isWindows && existsSync(join(binaryDestDir, phpBinaryFilename))) {
+        if (targetOs == 'win' && existsSync(join(binaryDestDir, phpBinaryFilename))) {
+            console.log('Copying PHP executable from php.exe to just php for cross env compatibility');
             copySync(join(binaryDestDir, phpBinaryFilename), join(binaryDestDir, 'php'));
         }
         console.log('Copied PHP binary to ', binaryDestDir);
@@ -118,19 +119,19 @@ if (isBuilding) {
                 });
 
                 return !shouldSkip;
-            }
+            },
         });
 
         copySync(tmpDir, join(__dirname, 'resources', 'app'));
 
         // Electron build removes empty folders, so we have to create dummy files
         // dotfiles unfortunately don't work.
-        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'cache', '_native.json'), {})
-        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'sessions', '_native.json'), {})
-        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'testing', '_native.json'), {})
-        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'views', '_native.json'), {})
-        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'app', 'public', '_native.json'), {})
-        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'logs', '_native.json'), {})
+        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'cache', '_native.json'), {});
+        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'sessions', '_native.json'), {});
+        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'testing', '_native.json'), {});
+        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'framework', 'views', '_native.json'), {});
+        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'app', 'public', '_native.json'), {});
+        writeJsonSync(join(__dirname, 'resources', 'app', 'storage', 'logs', '_native.json'), {});
 
         removeSync(tmpDir);
 
@@ -140,14 +141,15 @@ if (isBuilding) {
         console.log('=====================');
 
         // We'll use the default PHP binary here, as we can cross-compile for all platforms
-        execSync(`php ${join(__dirname, 'resources', 'app', 'artisan')} native:minify ${join(__dirname, 'resources', 'app')}`);
+        execSync(
+            `php ${join(__dirname, 'resources', 'app', 'artisan')} native:minify ${join(__dirname, 'resources', 'app')}`
+        );
     } catch (e) {
         console.error('=====================');
         console.error('Error copying app to resources');
         console.error(e);
         console.error('=====================');
     }
-
 }
 
 const deepLinkProtocol = 'nativephp';
@@ -166,9 +168,7 @@ module.exports = {
         '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}',
         '!{.env,.env.*,.npmrc,pnpm-lock.yaml}',
     ],
-    asarUnpack: [
-        'resources/**',
-    ],
+    asarUnpack: ['resources/**'],
     afterSign: 'build/notarize.js',
     win: {
         executableName: fileName,
@@ -191,14 +191,10 @@ module.exports = {
         },
         artifactName: appName + '-${version}-${arch}.${ext}',
         extendInfo: {
-            NSCameraUsageDescription:
-                "Application requests access to the device's camera.",
-            NSMicrophoneUsageDescription:
-                "Application requests access to the device's microphone.",
-            NSDocumentsFolderUsageDescription:
-                "Application requests access to the user's Documents folder.",
-            NSDownloadsFolderUsageDescription:
-                "Application requests access to the user's Downloads folder.",
+            NSCameraUsageDescription: "Application requests access to the device's camera.",
+            NSMicrophoneUsageDescription: "Application requests access to the device's microphone.",
+            NSDocumentsFolderUsageDescription: "Application requests access to the user's Documents folder.",
+            NSDownloadsFolderUsageDescription: "Application requests access to the user's Downloads folder.",
         },
     },
     dmg: {
@@ -219,5 +215,5 @@ module.exports = {
         homepage: appUrl,
         version: appVersion,
         author: appAuthor,
-    }
+    },
 };
