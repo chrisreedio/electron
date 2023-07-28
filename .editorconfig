@@ -10,8 +10,6 @@ trim_trailing_whitespace = true
 quote_type = single
 max_line_length = 120
 
-[*.py]
-
 [*.md]
 trim_trailing_whitespace = false
 
