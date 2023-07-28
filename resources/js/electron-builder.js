@@ -35,7 +35,7 @@ switch (targetOs) {
         break;
 }
 
-if (isWindows || osTarget == 'win') {
+if (isWindows || targetOs == 'win') {
     targetOs = 'win';
     phpBinaryFilename += '.exe';
 } else if (isLinux) {
