@@ -16,16 +16,20 @@ const isArm64 = process.argv.includes('--arm64');
 const isWindows = process.argv.includes('--win');
 const isLinux = process.argv.includes('--linux');
 const isDarwin = process.argv.includes('--mac');
-let targetOs = 'mac';
 let phpBinaryFilename = 'php';
+// Default to the current platform for develop mode. Build will pass in an arg that overrides this
+let targetOs = process.platform;
+
 if (isWindows) {
     targetOs = 'win';
     phpBinaryFilename += '.exe';
-}
-if (isLinux) {
+} else if (isLinux) {
     targetOs = 'linux';
+} else if (isDarwin) {
+	targetOs = 'mac';
 }
 
+// Default to the current arch for develop mode. Build will pass in an arg that overrides this
 let binaryArch = process.arch;
 if (isArm64) {
     binaryArch = 'arm64';
