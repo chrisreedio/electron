@@ -3,7 +3,6 @@ const { join } = require('path');
 const os = require('os');
 const { mkdtempSync } = require('fs');
 const { execSync } = require('child_process');
-const { is } = require('@electron-toolkit/utils');
 const isBuilding = process.env.NATIVEPHP_BUILDING == 1;
 const appId = process.env.NATIVEPHP_APP_ID;
 const appName = process.env.NATIVEPHP_APP_NAME;
@@ -13,6 +12,7 @@ const appUrl = process.env.APP_URL;
 const appAuthor = process.env.NATIVEPHP_APP_AUTHOR;
 const phpBinaryPath = process.env.NATIVEPHP_PHP_BINARY_PATH;
 const certificatePath = process.env.NATIVEPHP_CERTIFICATE_FILE_PATH;
+
 let phpBinaryFilename = 'php';
 
 // Allows us to map the platform name to the directory name for development mode
